@@ -26,24 +26,21 @@ def part1(input):
     number_splits = 0
     while laser_tips:
         i,j = laser_tips.pop()
-        if i+1 >= map_height:
+        i += 1  # laser goes down in any case
+        if i >= map_height:
             continue
-        down_pos = (i+1, j)
+        down_pos = (i, j)
         if not down_pos in splitting_positions:
-            laser_tips.append( down_pos )
+            laser_tips.append(down_pos)
             active_laser_positions.add(down_pos)
         if down_pos in splitting_positions:
-            beam_split_pos_1 = (i+1, j-1)
-            beam_split_pos_2 = (i+1, j+1)
             split = False
-            if 0 <= beam_split_pos_1[1] < map_width and beam_split_pos_1 not in active_laser_positions:
-                laser_tips.append( beam_split_pos_1 )
-                active_laser_positions.add( beam_split_pos_1)
-                split = True
-            if 0 <= beam_split_pos_2[1] < map_width and beam_split_pos_2 not in active_laser_positions:
-                laser_tips.append(beam_split_pos_2)
-                active_laser_positions.add(beam_split_pos_2)
-                split = True
+            for beam_split_pos_j in [j-1, j+1]:
+                beam_split_pos = (i, beam_split_pos_j)
+                if 0 <= beam_split_pos_j < map_width and beam_split_pos not in active_laser_positions:
+                    laser_tips.append(beam_split_pos)
+                    active_laser_positions.add(beam_split_pos)
+                    split = True
             if split:
                 number_splits += 1
     return number_splits
