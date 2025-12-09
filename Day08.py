@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from aocAuto import AOC_Auto
 
 aoca = AOC_Auto(day=8, year = 2025, skip_example_part_a=True)
@@ -10,70 +12,62 @@ def parse(text):
 def l2_norm(p1, p2):
     return sum([(x-y)**2 for x,y in zip(p1,p2)])
 
+class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [1] * n
+        self.num_sets = n
+
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, x, y):
+        x_root = self.find(x)
+        y_root = self.find(y)
+        if x_root == y_root:
+            return False
+        if self.rank[x_root] <= self.rank[y_root]:
+            self.parent[x_root] = y_root
+            self.rank[y_root] += self.rank[x_root]
+        else:
+            self.parent[y_root] = x_root
+            self.rank[x_root] += self.rank[y_root]
+
+        self.num_sets -= 1
+        return True
+
 
 def part1(input, number_connections = 1000):
     positions = parse(input)
     pairwise_distance = [(l2_norm(p1, p2), i, j) for i, p1 in enumerate(positions) for j, p2 in enumerate(positions[:i])]
     sorted_pairs = sorted(pairwise_distance, key = lambda pair: pair[0])
     connections = [(i,j) for _, i, j in sorted_pairs[:number_connections]]
-    id_to_members = {}
-    member_with_id = []
-    def give_connected_component_id(ind, cid):
-        if ind in member_with_id:   # to circumvent circle-connections
-            return
-        if cid not in id_to_members:
-            id_to_members[cid] = []
-        id_to_members[cid].append( ind )
-        member_with_id.append(ind)
-        for i,j in connections:
-            if i == ind:
-                give_connected_component_id(j, cid)
-            if j == ind:
-                give_connected_component_id(i, cid)
+    uf = UnionFind( len(positions) )
+    for i, j in connections:
+        uf.union(i, j)
 
-    current_id = 0
-    for i, _ in connections: # only go through the values which have a connection to find biggest connected components
-        if i not in id_to_members.values():
-            give_connected_component_id(i, current_id)
-            current_id += 1
+    root_members = defaultdict(int) # dict with initial value 0
+    for i in range(len(positions)):
+        root_members[ uf.find(i) ] += 1
 
-    sizes_of_circuits = sorted( [len(circuit) for circuit in id_to_members.values()], reverse=True ) # descending
+    sizes_of_circuits = sorted( root_members.values(), reverse=True ) # descending
     return sizes_of_circuits[0]*sizes_of_circuits[1]*sizes_of_circuits[2]
 
 
 def part2(input):
     positions = parse(input)
-    pairwise_distance = [(l2_norm(p1, p2), i, j) for i, p1 in enumerate(positions) for j, p2 in
-                         enumerate(positions[:i])]
+    pairwise_distance = [(l2_norm(p1, p2), i, j) for i, p1 in enumerate(positions) for j, p2 in enumerate(positions[:i])]
     sorted_pairs = sorted(pairwise_distance, key=lambda pair: pair[0])
+    uf = UnionFind( len(positions) )
+    number_of_edges = 0
+    i, j = 0, 0
+    while number_of_edges < len(positions)-1:   # to connect N Points, N-1 edges are needed
+        _, i, j = sorted_pairs.pop(0)
+        if uf.union(i,j):
+            number_of_edges += 1
 
-    def are_all_connected(number_connections):
-        member_with_id = []
-        connections = [(i, j) for _, i, j in sorted_pairs[:number_connections]]
-        def give_connected_component_id(ind):
-            if ind in member_with_id:  # to circumvent circle-connections
-                return
-            member_with_id.append(ind)
-            for i, j in connections:
-                if i == ind:
-                    give_connected_component_id(j)
-                if j == ind:
-                    give_connected_component_id(i)
-
-        give_connected_component_id(0)
-        return len(member_with_id) == len(positions)
-
-    # bisection to find perfect index
-    smaller, bigger = len(positions)-1, len(sorted_pairs)   # i need at least len(positions)-1 connections and at most all
-    while smaller < bigger-1:
-        new_test_value = (smaller + bigger)//2
-        if are_all_connected(new_test_value):
-            bigger = new_test_value
-        else:
-            smaller = new_test_value
-
-    last_needed_pair_ind = bigger - 1    # since we need {bigger} number of connections
-    _, i, j = sorted_pairs[last_needed_pair_ind]    # obtain position indices of last added connection
     return positions[i][0] * positions[j][0]    # result is the product of the X-coordinates
 
 aoca.auto_submit(part1, part2)
