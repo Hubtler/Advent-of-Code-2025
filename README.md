@@ -1,6 +1,5 @@
 # Advent of Code 2025 🎄⭐
-
-This repository contains my **solutions to [Advent of Code 2025](https://adventofcode.com/2025)**, implemented in Python as part of my yearly Advent coding calendar.
+This repository contains my **solutions to [Advent of Code 2025](https://adventofcode.com/2025)**, implemented in Python and completed during December 2025.
 This year, there are only **24 stars** to earn (instead of the 50 stars in the years before).
 
 ## Daily star status
