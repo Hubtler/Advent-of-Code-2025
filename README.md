@@ -20,6 +20,8 @@ Here, ✩ represents the **silver star** (Part 1) and ⭐ represents the **gold 
 | Day 11 | ✩        | ⭐        |
 | Day 12 | ✩        | ⭐        |
 
+Up-to-date global completion statistics for Advent of Code 2025 can be found at [https://adventofcode.com/2025/stats](https://adventofcode.com/2025/stats).
+
 ## Overview
 
 - **Language:** Python  
